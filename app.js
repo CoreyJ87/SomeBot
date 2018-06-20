@@ -93,7 +93,7 @@ app.use(function(err, req, res, next) {
 });
 
 function encrypt(text) {
-  var cipher = crypto.createCipheri(algorithm, password)
+  var cipher = crypto.createCipher(algorithm, password)
   var crypted = cipher.update(text, 'utf8', 'hex')
   crypted += cipher.final('hex');
   return crypted;
