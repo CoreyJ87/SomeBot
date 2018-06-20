@@ -53,7 +53,7 @@ var initDiscord = function(req, res, next) {
   client.on('guildMemberAdd', member => {
     const id = member.id;
     var encryptedId = encrypt(id)
-    member.send('Hi. To link your account to your rotogrinders account please follow this link. http://radnor.rotogrinders.com/partners/discord?id=96c71cf97d4af46c9ece559f400e7a920a6b' + encryptedId);
+    member.send('Hi. To link your account to your rotogrinders account please follow this link. https://rotogrinders.com/partners/discord?id=' + encryptedId);
   });
   client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -93,7 +93,7 @@ app.use(function(err, req, res, next) {
 });
 
 function encrypt(text) {
-  var cipher = crypto.createCipher(algorithm, password)
+  var cipher = crypto.createCipheriv(algorithm, password)
   var crypted = cipher.update(text, 'utf8', 'hex')
   crypted += cipher.final('hex');
   return crypted;

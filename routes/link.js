@@ -29,8 +29,12 @@ router.post('/', function(req, res, next) {
   });
 
   if (!_.isEmpty(discordId) && !_.isEmpty(defaultRoleData) && !_.isEmpty(member)) {
-    member.addRole(defaultRoleData);
-    member.send(' You now have access to all standard RG channels.');
+    member.addRole(defaultRoleData)
+      .then(function(response) {
+        console.log(response)
+      })
+      .catch(console.error);
+    m
   }
   if (!_.isEmpty(discordId) && isPremium && !_.isEmpty(member)) {
     member.addRole(premiumRoleData);

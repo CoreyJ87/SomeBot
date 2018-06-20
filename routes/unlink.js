@@ -28,7 +28,9 @@ router.post('/', function(req, res, next) {
   });
 
   if (!_.isEmpty(discordId) && isPremium == false && !_.isEmpty(member)) {
-    member.removeRole(premiumRoleData);
+    member.removeRole(premiumRoleData)
+      .then(console.log)
+      .catch(console.error);
 
     //Uncomment when multi-premium channel is enabled.
     /*  var productIdArr = [];
@@ -58,7 +60,7 @@ router.post('/', function(req, res, next) {
 });
 
 function decrypt(text) {
-  var decipher = crypto.createDecipher(algorithm, password)
+  var decipher = crypto.createDecipherv(algorithm, password)
   var dec = decipher.update(text, 'hex', 'utf8')
   dec += decipher.final('utf8');
   return dec;
