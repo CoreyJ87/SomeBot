@@ -6,6 +6,7 @@ const logger = require('morgan');
 const Discord = require('discord.js');
 const bodyParser = require('body-parser');
 const crypto = require('crypto');
+const fs = require('fs');
 const algorithm = 'aes-256-ctr',
   password = '3kj4b69sd73jqa0xj230xk';
 
@@ -52,7 +53,7 @@ var initDiscord = function(req, res, next) {
   client.on('guildMemberAdd', member => {
     const id = member.id;
     var encryptedId = encrypt(id)
-    member.send('Hi. To link your account to your rotogrinders account please follow this link. https://rotogrinders.com/partners/discord?id=' + encryptedId);
+    member.send('Hi. To link your account to your rotogrinders account please follow this link. http://radnor.rotogrinders.com/partners/discord?id=96c71cf97d4af46c9ece559f400e7a920a6b' + encryptedId);
   });
   client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -77,7 +78,15 @@ app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
+  console.log(err)
 
+  fs.writeFile("/var/log/rgdiscordbot.log", err, function(err2) {
+    if (err2) {
+      return console.log(err2);
+    }
+
+    console.log("The file was saved!");
+  });
   // render the error page
   res.status(err.status || 500);
   res.render('error');
