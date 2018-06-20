@@ -34,7 +34,6 @@ router.post('/', function(req, res, next) {
         console.log(response)
       })
       .catch(console.error);
-    m
   }
   if (!_.isEmpty(discordId) && isPremium && !_.isEmpty(member)) {
     member.addRole(premiumRoleData);
