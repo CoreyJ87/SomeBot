@@ -43,18 +43,6 @@ var initDiscord = function(req, res, next) {
   req.guildID = "456864351870124032"
   var token = "NDU3MjE1MDY2NzQwMjI4MTI4.DgV2Pg.4v-AZagi-o9zlw_pHOptjuakxmo"
   client.login(token);
-  client.on('message', msg => {
-    if (msg.content === 'ping') {
-      msg.reply('Pong!');
-    }
-  });
-
-  // Create an event listener for new guild members
-  client.on('guildMemberAdd', member => {
-    const id = member.id;
-    var encryptedId = encrypt(id)
-    member.send('Hi. To link your account to your rotogrinders account please follow this link. https://rotogrinders.com/partners/discord?id=' + encryptedId);
-  });
   client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
     next();
