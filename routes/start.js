@@ -3,6 +3,8 @@ var router = express.Router();
 
 /* GET start listing. */
 router.get('/', function(req, res, next) {
+
+  var client = req.client;
   // Create an event listener for new guild members
   client.on('guildMemberAdd', member => {
     const id = member.id;
