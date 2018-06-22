@@ -1,22 +1,32 @@
-var express = require('express');
-var router = express.Router();
+require('dotenv').config()
+const express = require('express');
+const router = express.Router();
+const crypto = require('crypto');
+const algorithm = process.env.ALGORITHM;
+const password = process.env.ENCRYPTION_PASS;
 
-/* GET start listing. */
 router.get('/', function(req, res, next) {
 
   var client = req.client;
-  // Create an event listener for new guild members
+  //only send this msg to ppl that havent linked their account
   client.on('guildMemberAdd', member => {
-    const id = member.id;
-    var encryptedId = encrypt(id)
-    member.send('Hi. To link your account to your rotogrinders account please follow this link. https://rotogrinders.com/partners/discord?id=' + encryptedId);
-  });
-  client.on('message', msg => {
-    if (msg.content === 'ping') {
-      msg.reply('Pong!');
+    console.log("Member details:" + member.roles.has("456874019732324353"));
+    //if the joining member has the default roles
+    if (!member.roles.has("456874019732324353")) {
+      const id = member.id;
+      var encryptedId = encrypt(id)
+      member.send('Hi, welcome to the Rotogrinders discord server! To chat and receive access to any premium channels you will need to link your account to your Rotogrinders account. To link your account, please follow this link. https://rotogrinders.com/partners/discord?id=' + encryptedId);
     }
   });
   res.send('Bot has been started');
 });
+
+function encrypt(text) {
+  var cipher = crypto.createCipher(algorithm, password)
+  var crypted = cipher.update(text, 'utf8', 'hex')
+  crypted += cipher.final('hex');
+  return crypted;
+}
+
 
 module.exports = router;

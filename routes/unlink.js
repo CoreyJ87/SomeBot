@@ -1,9 +1,10 @@
-var express = require('express');
-var router = express.Router();
+require('dotenv').config()
+const express = require('express');
+const router = express.Router();
 const _ = require('lodash');
 const crypto = require('crypto');
-const algorithm = 'aes-256-ctr',
-  password = '3kj4b69sd73jqa0xj230xk';
+const algorithm = process.env.ALGORITHM;
+const password = process.env.ENCRYPTION_PASS;
 
 
 router.post('/', function(req, res, next) {
@@ -29,8 +30,17 @@ router.post('/', function(req, res, next) {
 
   if (!_.isEmpty(discordId) && isPremium == false && !_.isEmpty(member)) {
     member.removeRole(premiumRoleData)
-      .then(console.log)
-      .catch(console.error);
+      .then(function(response) {
+        res.json({
+          success: true
+        });
+        member.send('You may not have realized premium gave you exclusive access to our experts in the #premium channel. Resubscribe today!');
+      })
+      .catch(function() {
+        res.json({
+          success: false
+        })
+      });
 
     //Uncomment when multi-premium channel is enabled.
     /*  var productIdArr = [];
@@ -60,7 +70,7 @@ router.post('/', function(req, res, next) {
 });
 
 function decrypt(text) {
-  var decipher = crypto.createDecipherv(algorithm, password)
+  var decipher = crypto.createDecipher(algorithm, password)
   var dec = decipher.update(text, 'hex', 'utf8')
   dec += decipher.final('utf8');
   return dec;

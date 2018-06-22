@@ -1,3 +1,4 @@
+require('dotenv').config()
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
@@ -5,23 +6,18 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const Discord = require('discord.js');
 const bodyParser = require('body-parser');
-const crypto = require('crypto');
 const fs = require('fs');
-const algorithm = 'aes-256-ctr',
-  password = '3kj4b69sd73jqa0xj230xk';
-
-var options = {
-  inflate: true,
-  limit: '100kb',
+const guildId = process.env.GUILD_ID;
+const botToken = process.env.BOT_TOKEN;
+const options = {
   type: 'application/json'
 };
+const app = express();
 
-var app = express();
 
-var indexRouter = require('./routes/index');
-var startRouter = require('./routes/start');
-var linkRouter = require('./routes/link');
-var unlinkRouter = require('./routes/unlink');
+const startRouter = require('./routes/start');
+const linkRouter = require('./routes/link');
+const unlinkRouter = require('./routes/unlink');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -37,11 +33,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 
 var initDiscord = function(req, res, next) {
+  console.log(req.body);
   console.log('Initialized Discord Client');
   var client = new Discord.Client();
   req.client = client;
-  req.guildID = "456864351870124032"
-  var token = "NDU3MjE1MDY2NzQwMjI4MTI4.DgV2Pg.4v-AZagi-o9zlw_pHOptjuakxmo"
+  req.guildID = guildId;
+  var token = botToken;
   client.login(token);
   client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -51,7 +48,6 @@ var initDiscord = function(req, res, next) {
 }
 
 app.use(initDiscord);
-app.use('/', indexRouter);
 app.use('/start', startRouter);
 app.use('/link', linkRouter);
 app.use('/unlink', unlinkRouter);
@@ -72,20 +68,12 @@ app.use(function(err, req, res, next) {
     if (err2) {
       return console.log(err2);
     }
-
-    console.log("The file was saved!");
   });
   // render the error page
   res.status(err.status || 500);
   res.render('error');
 });
 
-function encrypt(text) {
-  var cipher = crypto.createCipher(algorithm, password)
-  var crypted = cipher.update(text, 'utf8', 'hex')
-  crypted += cipher.final('hex');
-  return crypted;
-}
 
 
 module.exports = app;
