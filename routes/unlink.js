@@ -1,72 +1,38 @@
-require('dotenv').config()
 const express = require('express');
 const router = express.Router();
 const _ = require('lodash');
 const crypto = require('crypto');
+const kue = require('kue');
 const algorithm = process.env.ALGORITHM;
 const password = process.env.ENCRYPTION_PASS;
+const defaultRoleId = process.env.DEFAULT_ROLE_ID;
+const premiumRoleId = process.env.PREMIUM_ROLE_ID;
 
+
+//This is a map for the product id on the rotogrinders side. Matched with the role ID on the discord side.
+var roles = {
+  '72': '456868636712501278'
+}
+
+//TOTO:Change nickname
 
 router.post('/', function(req, res, next) {
-  var isPremium = false;
-  var discordId = decrypt(req.body.discord_id); // Corey test userid"457228013562494977"
-  var userProducts = req.body.user_products;
-  var client = req.client;
-  var guild = client.guilds.get(req.guildID);
-  var member = guild.members.get(discordId);
-  var defaultRoleData = guild.roles.find("id", "456874019732324353");
-  var premiumRoleData = guild.roles.find("id", "456868636712501278");
-
-  //This is a map for the product id on the rotogrinders side. Matched with the role ID on the discord side.
-  var roles = {
-    '72': '456868636712501278', //Premium Channel role
-  }
-
-  _.forEach(userProducts, function(singleProduct) {
-    if (singleProduct['product'].product_type_id == 1) {
-      isPremium = true;
+  var queue = req.queue;
+  var job = queue.create('discordUnlink', {
+    discordId: decrypt(req.body.discord_id),
+    username: (req.body.username),
+    userProducts: req.body.user_products,
+  }).removeOnComplete(false).save(function(err) {
+    if (!err) {
+      console.log(job.id);
+      res.json({
+        success: true
+      });
+    } else {
+      console.log(err);
+      res.send(err);
     }
   });
-
-  if (!_.isEmpty(discordId) && isPremium == false && !_.isEmpty(member)) {
-    member.removeRole(premiumRoleData)
-      .then(function(response) {
-        res.json({
-          success: true
-        });
-        member.send('You may not have realized premium gave you exclusive access to our experts in the #premium channel. Resubscribe today!');
-      })
-      .catch(function() {
-        res.json({
-          success: false
-        })
-      });
-
-    //Uncomment when multi-premium channel is enabled.
-    /*  var productIdArr = [];
-      _.forEach(userProducts, function(singleProduct) {
-        console.log(singleProduct);
-        console.log("Passed in Role Id:" + singleProduct['product_id']);
-        productIdArr.push(singleProduct['product_id']);
-        console.log("Coresponding Role:" + roles[singleProduct['product_id']]);
-
-      });
-
-      var removeRoles = _.omit(roles, productIdArr);
-      _.forEach(removeRole, function(badRole) {
-        member.removeRole(badRole[0])
-      });*/
-
-
-
-    res.json({
-      success: true
-    });
-  } else {
-    res.json({
-      success: false
-    })
-  }
 });
 
 function decrypt(text) {
@@ -75,8 +41,5 @@ function decrypt(text) {
   dec += decipher.final('utf8');
   return dec;
 }
-
-
-
 
 module.exports = router;

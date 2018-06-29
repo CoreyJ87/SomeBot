@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const _ = require('lodash');
 const crypto = require('crypto');
+const kue = require('kue');
 const algorithm = process.env.ALGORITHM;
 const password = process.env.ENCRYPTION_PASS;
 const defaultRoleId = process.env.DEFAULT_ROLE_ID;
 const premiumRoleId = process.env.PREMIUM_ROLE_ID;
+
 
 //This is a map for the product id on the rotogrinders side. Matched with the role ID on the discord side.
 var roles = {
@@ -15,72 +17,23 @@ var roles = {
 //TOTO:Change nickname
 
 router.post('/', function(req, res, next) {
-  var defaultAdded = false;
-  var premiumAdded = false;
-  var isPremium = false;
-  var count = 0;
-
-  var discordId = decrypt(req.body.discord_id); // Corey test userid"457228013562494977"
-  var userProducts = req.body.user_products;
-
-  var client = req.client;
-  var guild = client.guilds.get(req.guildID);
-  var member = guild.members.get(discordId);
-  var defaultRoleData = guild.roles.find("id", defaultRoleId);
-  var premiumRoleData = guild.roles.find("id", premiumRoleId);
-
-  if (_.isEmpty(discordId) || _.isEmpty(member) || _.isEmpty(userProducts) || _.isEmpty(defaultRoleData)) {
-    res.status(err.status || 500);
-    res.render('error');
-  } else {
-
-    _.forEach(userProducts, function(singleProduct) {
-      if (singleProduct['product'].product_type_id == 1) {
-        isPremium = true;
-      }
-    });
-
-    member.addRole(defaultRoleData).then(function(response) {
-        defaultAdded = true;
-        member.send('You now have access to standard RG channels.');
-      })
-      .catch(function(e) {
-        console.log(e);
-        res.json({
-          success: false
-        })
-      });
-
-    if (isPremium) {
-      member.addRole(premiumRoleData).then(function(response) {
-        console.log("Add premium role response:" + response);
-        member.send(' You now have access to premium RG channels.');
-        premiumAdded = true;
-      }).catch(function(e) {
-        console.log(e);
-        res.json({
-          success: false
-        });
-      })
-      //Uncomment when multi-premium channel is enabled.
-      /*_.forEach(userProducts, function(singleProduct) {
-        console.log(singleProduct)
-        console.log("Passed in Role Id:" + singleProduct['product_id']);
-        console.log("Coresponding Role:" + roles[singleProduct['product_id']]);
-        var roleData = guild.roles.find("id", roles[Id]);
-        member.addRole(roleData);
-      });*/
-    }
-    if (premiumAdded && defaultAdded) {
+  var queue = req.queue;
+  var job = queue.create('discordLink', {
+    title: req.body.username
+    discordId: decrypt(req.body.discord_id),
+    username: (req.body.username),
+    userProducts: req.body.user_products,
+  }).removeOnComplete(false).save(function(err) {
+    if (!err) {
+      console.log(job.id);
       res.json({
         success: true
-      })
+      });
     } else {
-      res.json({
-        success: false
-      })
+      console.log(err);
+      res.send(err);
     }
-  }
+  });
 });
 
 function decrypt(text) {

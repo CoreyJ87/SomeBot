@@ -7,18 +7,29 @@ const logger = require('morgan');
 const Discord = require('discord.js');
 const bodyParser = require('body-parser');
 const fs = require('fs');
+const kue = require('kue');
+const queue = kue.createQueue();
 const guildId = process.env.GUILD_ID;
 const botToken = process.env.BOT_TOKEN;
+
 const options = {
   type: 'application/json'
 };
 const app = express();
-
+const textResponses = {
+  addDefault: "You now have access to standard RG channels.",
+  addPremium: " You now have access to premium RG channels.",
+  premiumUnsub: "You may not have realized premium gave you exclusive access to our experts in the #premium channel. Resubscribe today!",
+  welcomeMessage: "Hi, welcome to the Rotogrinders discord server! To chat and receive access to any premium channels you will need to link your account to your Rotogrinders account. To link your account, please follow this link. https://rotogrinders.com/partners/discord?id=",
+}
 
 const startRouter = require('./routes/start');
 const linkRouter = require('./routes/link');
+//const queueRouter = require('./routes/queueLink');
 const unlinkRouter = require('./routes/unlink');
+const processRouter = require('./routes/processQueue');
 
+kue.app.listen(3050);
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -32,7 +43,20 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 
+
+var checkApiKey = function(req, res, next) {
+  if (req.query.apikey == process.env.API_KEY) {
+    next();
+  } else {
+    res.status(401).json({
+      unauthorized: true
+    })
+  }
+}
+
 var initDiscord = function(req, res, next) {
+  req.queue = queue;
+  req.textResponses = textResponses;
   console.log(req.body);
   console.log('Initialized Discord Client');
   var client = new Discord.Client();
@@ -46,10 +70,12 @@ var initDiscord = function(req, res, next) {
   });
 
 }
-
+app.use(checkApiKey);
 app.use(initDiscord);
 app.use('/start', startRouter);
 app.use('/link', linkRouter);
+//app.use('/queuelink', queueRouter)
+app.use('/processqueue', processRouter)
 app.use('/unlink', unlinkRouter);
 
 // catch 404 and forward to error handler
