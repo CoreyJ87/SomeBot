@@ -12,18 +12,20 @@ const premiumRoleId = process.env.PREMIUM_ROLE_ID;
 //This is a map for the product id on the rotogrinders side. Matched with the role ID on the discord side.
 var roles = {
   '72': '456868636712501278'
+
 }
 
 //TOTO:Change nickname
 
 router.post('/', function(req, res, next) {
+
   var queue = req.queue;
   var job = queue.create('discordLink', {
-    title: req.body.username
+    title: req.body.username,
     discordId: decrypt(req.body.discord_id),
     username: (req.body.username),
     userProducts: req.body.user_products,
-  }).removeOnComplete(false).save(function(err) {
+  }).removeOnComplete(false).attempts(5).save(function(err) {
     if (!err) {
       console.log(job.id);
       res.json({

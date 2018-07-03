@@ -8,28 +8,28 @@ const Discord = require('discord.js');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const kue = require('kue');
+const process = require('process');
+//const linkqueue = require('middleware/linkqueue.js');
+//const unlinkqueue = require('middleware/linkqueue.js');
 const queue = kue.createQueue();
 const guildId = process.env.GUILD_ID;
 const botToken = process.env.BOT_TOKEN;
-
-const options = {
-  type: 'application/json'
-};
 const app = express();
+kue.app.listen(3050);
+
 const textResponses = {
-  addDefault: "You now have access to standard RG channels.",
-  addPremium: " You now have access to premium RG channels.",
+  addDefault: "You now have access to all standard RotoGrinders channels.",
+  addPremium: "You now have access to the #premium RotoGrinders channel.",
   premiumUnsub: "You may not have realized premium gave you exclusive access to our experts in the #premium channel. Resubscribe today!",
   welcomeMessage: "Hi, welcome to the Rotogrinders discord server! To chat and receive access to any premium channels you will need to link your account to your Rotogrinders account. To link your account, please follow this link. https://rotogrinders.com/partners/discord?id=",
 }
 
 const startRouter = require('./routes/start');
 const linkRouter = require('./routes/link');
-//const queueRouter = require('./routes/queueLink');
 const unlinkRouter = require('./routes/unlink');
 const processRouter = require('./routes/processQueue');
 
-kue.app.listen(3050);
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -57,7 +57,6 @@ var checkApiKey = function(req, res, next) {
 var initDiscord = function(req, res, next) {
   req.queue = queue;
   req.textResponses = textResponses;
-  console.log(req.body);
   console.log('Initialized Discord Client');
   var client = new Discord.Client();
   req.client = client;
@@ -70,11 +69,35 @@ var initDiscord = function(req, res, next) {
   });
 
 }
+
+var initQueue = function(req, res, next) {
+  queue.on('error', function(err) {
+    console.log('Oops... ', err);
+  });
+  process.once('SIGTERM', function(sig) {
+    queue.shutdown(5000, function(err) {
+      console.log('Kue shutdown: ', err || '');
+      process.exit(0);
+    });
+  });
+
+  queue.failed(function(err, ids) {
+    ids.forEach(function(id) {
+      kue.Job.get(id, function(err, job) {
+        // Add failed jobs back to queue
+        job.inactive();
+      });
+    });
+  });
+  next();
+}
+
 app.use(checkApiKey);
+app.use(initQueue);
 app.use(initDiscord);
+
 app.use('/start', startRouter);
 app.use('/link', linkRouter);
-//app.use('/queuelink', queueRouter)
 app.use('/processqueue', processRouter)
 app.use('/unlink', unlinkRouter);
 

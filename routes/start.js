@@ -13,7 +13,6 @@ router.get('/', function(req, res, next) {
 
   if (isMasterProcess()) {
     client.on('guildMemberAdd', member => {
-      console.log("Member details:" + member.roles.has("456874019732324353"));
       //if the joining member has the default roles
       if (!member.roles.has("456874019732324353")) {
         const id = member.id;
@@ -22,8 +21,6 @@ router.get('/', function(req, res, next) {
       }
     });
   }
-  console.log("IsMasterProcess:" + isMasterProcess());
-  res.send('Bot has been started');
 });
 
 function encrypt(text) {

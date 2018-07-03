@@ -88,11 +88,6 @@ function onListening() {
     'pipe ' + addr :
     'port ' + addr.port;
   debug('Listening on ' + bind);
-  request('https://rgbot.rotogrinders.com/start?apikey=B8dCDPAgRrnoFG2m70OeNRY9bKmMGAaAMBQSMcvpq', function(error, response, body) {
-    console.log('error:', error);
-    console.log('statusCode:', response && response.statusCode);
-    console.log('body:', body);
-  });
   request('https://rgbot.rotogrinders.com/processqueue?apikey=B8dCDPAgRrnoFG2m70OeNRY9bKmMGAaAMBQSMcvpq', function(error, response, body) {
     console.log('error:', error);
     console.log('statusCode:', response && response.statusCode);

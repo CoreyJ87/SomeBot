@@ -20,24 +20,15 @@ router.get('/', function(req, res, next) {
   var defaultRoleData = guild.roles.find("id", defaultRoleId);
   var premiumRoleData = guild.roles.find("id", premiumRoleId);
 
-  queue.failed(function(err, ids) {
-    ids.forEach(function(id) {
-      kue.Job.get(id, function(err, job) {
-        // Add failed jobs back to queue
-        job.inactive();
-      });
-    });
-  });
-
-
-  queue.process('discordUnlink', function(job, done) {
+  queue.process('discordUnlink', 4, function(job, done) {
     var isPremiumRemove = false;
     var discordId = job.data.discordId;
     var userProducts = job.data.userProducts;
     var member = guild.members.get(discordId);
+    console.log(guild.roles)
     _.forEach(userProducts, function(singleProduct) {
       console.log(singleProduct['product'].product_type_id);
-      console.log(singleProduct['status'])
+      console.log(singleProduct['status']);
 
       if (singleProduct['product'].product_type_id == 1 && singleProduct['status'] != 2 && singleProduct['status'] != 22) {
         isPremiumRemove = true;
@@ -58,19 +49,27 @@ router.get('/', function(req, res, next) {
 
 
 
-  queue.process('discordLink', function(job, done) {
+  queue.process('discordLink', 4, function(job, done) {
     var count = 0;
     var discordId = job.data.discordId;
     var userProducts = job.data.userProducts;
     var member = guild.members.get(discordId);
-    if (_.isEmpty(discordId) || _.isEmpty(member) || _.isEmpty(userProducts) || _.isEmpty(defaultRoleData)) {
+    if (_.isEmpty(discordId) || _.isEmpty(member) || _.isEmpty(defaultRoleData)) {
       done(new Error('Bad data'))
     } else {
-      var isPremium = isUserPremium(userProducts)
+      var isPremium = isUserPremium(userProducts);
       if (member.nickname != job.data.username)
         setNick(member, job)
 
-      if (!member.roles.has(process.env.DEFAULT_ROLE_ID)) {
+      if (member.roles.has(process.env.DEFAULT_ROLE_ID) && isPremium && !member.roles.has(process.env.PREMIUM_ROLE_ID)) {
+        member.addRole(premiumRoleData).then(function(response) {
+          member.send(req.textResponses.addPremium);
+          done();
+        }).catch(function(e) {
+          console.log(e);
+          done(new Error('Failed to add Premium Role'))
+        });
+      } else if (!member.roles.has(process.env.DEFAULT_ROLE_ID)) {
         member.addRole(defaultRoleData).then(function(response) {
             member.send(req.textResponses.addDefault);
             if (isPremium && !member.roles.has(process.env.PREMIUM_ROLE_ID)) {
@@ -89,10 +88,9 @@ router.get('/', function(req, res, next) {
             console.log(e);
             done(new Error('Failed to add default role'))
           });
-      } else {
-        done();
       }
     }
+
   });
 });
 

@@ -13,6 +13,7 @@
     "discord.js": "^11.3.2",
     "dotenv": "^6.0.0",
     "express": "~4.16.0",
+    "express-once": "^0.1.0",
     "http-errors": "~1.6.2",
     "kue": "^0.11.6",
     "lodash": "^4.17.10",
