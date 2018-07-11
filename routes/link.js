@@ -23,7 +23,7 @@ router.post('/', function(req, res, next) {
   var job = queue.create('discordLink', {
     title: req.body.username,
     discordId: decrypt(req.body.discord_id),
-    username: (req.body.username),
+    username: req.body.username,
     userProducts: req.body.user_products,
   }).removeOnComplete(false).attempts(5).save(function(err) {
     if (!err) {

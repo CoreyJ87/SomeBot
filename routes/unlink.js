@@ -19,6 +19,7 @@ var roles = {
 router.post('/', function(req, res, next) {
   var queue = req.queue;
   var job = queue.create('discordUnlink', {
+    title: req.body.username,
     discordId: decrypt(req.body.discord_id),
     username: (req.body.username),
     userProducts: req.body.user_products,
