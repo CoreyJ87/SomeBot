@@ -15,8 +15,6 @@ var roles = {
 
 }
 
-//TOTO:Change nickname
-
 router.post('/', function(req, res, next) {
 
   var queue = req.queue;
