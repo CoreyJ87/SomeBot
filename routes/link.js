@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const _ = require('lodash');
-const crypto = require('crypto');
 const kue = require('kue');
-const algorithm = process.env.ALGORITHM;
-const password = process.env.ENCRYPTION_PASS;
+const functions = require('../processors/functions.js');
+require('dotenv').config();
 const defaultRoleId = process.env.DEFAULT_ROLE_ID;
 const premiumRoleId = process.env.PREMIUM_ROLE_ID;
 
@@ -16,13 +15,23 @@ var roles = {
 }
 
 router.post('/', function(req, res, next) {
-
+  var isBanned = false;
   var queue = req.queue;
+
+  if (!_.isEmpty(req.body.groups)) {
+    _.forEach(req.body.groups, function(group) {
+      if (group.name == "banned") {
+        isBanned = true;
+      }
+    });
+  }
+
   var job = queue.create('discordLink', {
     title: req.body.username,
-    discordId: decrypt(req.body.discord_id),
+    discordId: functions.decrypt(req.body.discord_id),
     username: req.body.username,
     userProducts: req.body.user_products,
+    banned: isBanned,
   }).removeOnComplete(false).attempts(5).save(function(err) {
     if (!err) {
       console.log(job.id);
@@ -36,11 +45,5 @@ router.post('/', function(req, res, next) {
   });
 });
 
-function decrypt(text) {
-  var decipher = crypto.createDecipher(algorithm, password)
-  var dec = decipher.update(text, 'hex', 'utf8')
-  dec += decipher.final('utf8');
-  return dec;
-}
 
 module.exports = router;

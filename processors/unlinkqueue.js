@@ -1,6 +1,6 @@
-require('dotenv').config()
 const _ = require('lodash');
 const kue = require('kue');
+require('dotenv').config();
 const defaultRoleId = process.env.DEFAULT_ROLE_ID;
 const premiumRoleId = process.env.PREMIUM_ROLE_ID;
 const guildId = process.env.GUILD_ID;
@@ -31,6 +31,8 @@ var self = module.exports = {
           .catch(function() {
             done(new Error('Failed to remove role'));
           });
+      } else {
+        done();
       }
     })
   },

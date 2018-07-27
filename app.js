@@ -1,28 +1,32 @@
-require('dotenv').config()
-const createError = require('http-errors');
+require('dotenv').config();
 const express = require('express');
+const fs = require('fs');
+const createError = require('http-errors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const Discord = require('discord.js');
 const bodyParser = require('body-parser');
+const logger = require('morgan');
 const kue = require('kue');
-const fs = require('fs');
+var kueUiExpress = require('kue-ui-express');
+const Discord = require('discord.js');
 const _ = require('lodash');
-const crypto = require('crypto');
+const cluster = require('cluster')
 
+const functions = require('./processors/functions.js');
 const linkProcessor = require('./processors/linkqueue.js');
 const unlinkProcessor = require('./processors/unlinkqueue.js');
+const unbanProcessor = require('./processors/unbanqueue.js');
+const banProcessor = require('./processors/banqueue.js');
+const eventListeners = require('./processors/eventlisteners.js')
 const queue = kue.createQueue();
 const guildId = process.env.GUILD_ID;
-const botToken = process.env.BOT_TOKEN;
-const algorithm = process.env.ALGORITHM;
-const password = process.env.ENCRYPTION_PASS;
+var botToken = process.env.BOT_TOKEN;
+
+
 
 const app = express();
+kueUiExpress(app, '/thequeue/', '/kue-api');
 var client = new Discord.Client();
-
-kue.app.listen(3050);
 
 const textResponses = {
   addDefault: "You now have access to all standard RotoGrinders channels.",
@@ -33,6 +37,10 @@ const textResponses = {
 
 const linkRouter = require('./routes/link');
 const unlinkRouter = require('./routes/unlink');
+const encryptRouter = require('./routes/encryptor');
+const banRouter = require('./routes/ban');
+const unbanRouter = require('./routes/unban');
+
 
 
 // view engine setup
@@ -50,7 +58,7 @@ app.use(bodyParser.json());
 
 
 var checkApiKey = function(req, res, next) {
-  if (req.query.apikey == process.env.API_KEY) {
+  if (req.query.apikey == process.env.API_KEY || req.originalUrl == "/kue" || req.originalUrl == "/kue-api") {
     next();
   } else {
     res.status(401).json({
@@ -88,37 +96,34 @@ var initQueue = function(req, res, next) {
   });
   next();
 }
-
+app.use('/kue-api/', kue.app);
 app.use(checkApiKey);
 app.use(initQueue);
 app.use(initDiscord);
 
 app.use('/link', linkRouter);
 app.use('/unlink', unlinkRouter);
+app.use('/encryptor', encryptRouter);
+app.use('/ban', banRouter);
+app.use('/unban', unbanRouter)
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
 });
 
-var token = botToken;
-client.login(token);
+console.log("Token:" + botToken)
+client.login(botToken);
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
   linkProcessor.queueInit(client, queue, textResponses);
   unlinkProcessor.queueInit(client, queue, textResponses);
+  if (functions.isMasterProcess())
+    eventListeners.eventListenersInit(client, textResponses);
 });
 
-if (isMasterProcess()) {
-  client.on('guildMemberAdd', member => {
-    //if the joining member has the default roles
-    if (!member.roles.has("456874019732324353")) {
-      const id = member.id;
-      var encryptedId = encrypt(id);
-      member.send(textResponses.welcomeMessage + encryptedId);
-    }
-  });
-}
+
 
 // error handler
 app.use(function(err, req, res, next) {
@@ -136,23 +141,5 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-
-function encrypt(text) {
-  var cipher = crypto.createCipher(algorithm, password)
-  var crypted = cipher.update(text, 'utf8', 'hex')
-  crypted += cipher.final('hex');
-  return crypted;
-}
-
-function isMasterProcess() {
-  if (_.has(process.env, 'NODE APP INSTANCE')) {
-    return _.get(process.env, 'NODE APP INSTANCE') === '0';
-  } else if (_.has(process.env, 'NODE_APP_INSTANCE')) {
-    return _.get(process.env, 'NODE_APP_INSTANCE') === '0';
-  } else {
-    return cluster.isMaster;
-  }
-}
-
 
 module.exports = app;
