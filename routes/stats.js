@@ -5,7 +5,8 @@ const kue = require('kue');
 const functions = require('../processors/functions.js');
 require('dotenv').config();
 
-router.post('/', function(req, res, next) {
+router.get('/', function(req, res, next) {
+  var client = req.client;
 
 });
 

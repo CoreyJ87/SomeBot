@@ -7,7 +7,7 @@ var self = module.exports = {
     var guild = client.guilds.get(guildId);
     if (functions.isMasterProcess()) {
       client.on('message', msg => {
-        if (msg.content == '!resend' && !msg.member.roles.find("id", "456874019732324353")) {
+        if (msg.content == '!resend') {
           const id = msg.author.id;
           var encryptedId = functions.encrypt(id);
           msg.author.send(textResponses.welcomeMessage + encryptedId);

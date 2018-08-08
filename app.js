@@ -1,4 +1,5 @@
 require('dotenv').config();
+const Promise = require("bluebird");
 const express = require('express');
 const fs = require('fs');
 const createError = require('http-errors');
@@ -7,7 +8,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const kue = require('kue');
-var kueUiExpress = require('kue-ui-express');
+const kueUiExpress = require('kue-ui-express');
 const Discord = require('discord.js');
 const _ = require('lodash');
 const cluster = require('cluster')
@@ -22,8 +23,6 @@ const queue = kue.createQueue();
 const guildId = process.env.GUILD_ID;
 var botToken = process.env.BOT_TOKEN;
 
-
-
 const app = express();
 kueUiExpress(app, '/thequeue/', '/kue-api');
 var client = new Discord.Client();
@@ -33,6 +32,7 @@ const textResponses = {
   addPremium: "You now have access to the #premium RotoGrinders channel.",
   premiumUnsub: "You may not have realized premium gave you exclusive access to our experts in the #premium channel. Resubscribe today!",
   welcomeMessage: "Hi, welcome to the Rotogrinders discord server! To chat and receive access to any premium channels you will need to link your account to your Rotogrinders account. To link your account, please follow this link. https://rotogrinders.com/partners/discord?id=",
+  upsell: "",
 }
 
 const linkRouter = require('./routes/link');
@@ -40,6 +40,7 @@ const unlinkRouter = require('./routes/unlink');
 const encryptRouter = require('./routes/encryptor');
 const banRouter = require('./routes/ban');
 const unbanRouter = require('./routes/unban');
+const statsRouter = require('./routes/stats')
 
 
 
@@ -106,7 +107,7 @@ app.use('/unlink', unlinkRouter);
 app.use('/encryptor', encryptRouter);
 app.use('/ban', banRouter);
 app.use('/unban', unbanRouter)
-
+app.use('/stats', statsRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -115,10 +116,15 @@ app.use(function(req, res, next) {
 
 console.log("Token:" + botToken)
 client.login(botToken);
+
 client.on('ready', () => {
+  var guild = client.guilds.get(guildId);
   console.log(`Logged in as ${client.user.tag}!`);
   linkProcessor.queueInit(client, queue, textResponses);
   unlinkProcessor.queueInit(client, queue, textResponses);
+  banProcessor.queueInit(client, queue);
+  unbanProcessor.queueInit(client, queue);
+
   if (functions.isMasterProcess())
     eventListeners.eventListenersInit(client, textResponses);
 });

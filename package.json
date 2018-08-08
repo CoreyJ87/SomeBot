@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "bluebird": "^3.5.1",
     "bufferutil": "^4.0.0",
     "cookie-parser": "~1.4.3",
     "crypto": "^1.0.1",

@@ -1,4 +1,6 @@
 require('dotenv').config();
+const _ = require('lodash');
+
 var self = module.exports = {
   queueInit: function(client, queue) {
     const guildId = process.env.GUILD_ID;

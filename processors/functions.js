@@ -26,14 +26,33 @@ var self = module.exports = {
       return cluster.isMaster;
     }
   },
+
+
   isUserPremium: function(userProducts) {
-    var isUserPremium = false;
-    _.forEach(userProducts, function(singleProduct) {
-      if (singleProduct['product'].product_type_id == 1 && singleProduct['status'] != 2 && singleProduct['status'] != 22) {
-        isUserPremium = true;
+    return new Promise(
+      function(resolve, reject) {
+        var isUserPremium = false;
+        _.forEach(userProducts, function(singleProduct) {
+          if (singleProduct['product'].product_type_id == 1 && singleProduct['status'] != 2 && singleProduct['status'] != 22) {
+            isUserPremium = true;
+          }
+        });
+        resolve(isUserPremium);
       }
-    });
-    return isUserPremium;
+    );
+
+  },
+  isNFLPreseason: function(userProducts) {
+    return new Promise(
+      function(resolve, reject) {
+        var isUserNFLPreason = false;
+        _.forEach(userProducts, function(singleProduct) {
+          if (singleProduct['product'].id == 618 && singleProduct['product'].product_type_id == 2 && singleProduct['status'] != 2 && singleProduct['status'] != 22) {
+            isUserNFLPreason = true;
+          }
+        });
+        resolve(isUserNFLPreason);
+      })
   },
 
   setNick: function(member, job) {

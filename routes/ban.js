@@ -7,6 +7,7 @@ const functions = require('../processors/functions.js');
 
 
 router.post('/', function(req, res, next) {
+  var queue = req.queue;
   var job = queue.create('discordBan', {
     title: req.body.username,
     discordId: functions.decrypt(req.body.discord_id),
