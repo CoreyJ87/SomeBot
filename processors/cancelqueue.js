@@ -9,9 +9,8 @@ const guildId = process.env.GUILD_ID;
 var self = module.exports = {
   queueInit: function(client, queue, textResponses) {
     var guild = client.guilds.get(guildId);
-    queue.process('discordUnlink', 4, async function(job, done) {
+    queue.process('discordCancel', 4, async function(job, done) {
       var removeArr = [];
-      var isPremiumRemove = false;
       var discordId = job.data.discordId;
       var userProducts = job.data.userProducts;
       var member = guild.members.get(discordId);

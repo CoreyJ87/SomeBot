@@ -15,7 +15,8 @@ const cluster = require('cluster')
 
 const functions = require('./processors/functions.js');
 const linkProcessor = require('./processors/linkqueue.js');
-const unlinkProcessor = require('./processors/unlinkqueue.js');
+const purchaseProcessor = require('./processors/purchasequeue.js');
+const cancelProcessor = require('./processors/cancelqueue.js');
 const unbanProcessor = require('./processors/unbanqueue.js');
 const banProcessor = require('./processors/banqueue.js');
 const eventListeners = require('./processors/eventlisteners.js')
@@ -36,7 +37,8 @@ const textResponses = {
 }
 
 const linkRouter = require('./routes/link');
-const unlinkRouter = require('./routes/unlink');
+const purchaseRouter = require('./routes/purchase');
+const cancelRouter = require('./routes/cancel');
 const encryptRouter = require('./routes/encryptor');
 const banRouter = require('./routes/ban');
 const unbanRouter = require('./routes/unban');
@@ -103,7 +105,9 @@ app.use(initQueue);
 app.use(initDiscord);
 
 app.use('/link', linkRouter);
-app.use('/unlink', unlinkRouter);
+app.use('/purchase', purchaseRouter);
+app.use('/unlink', cancelRouter)
+app.use('/cancel', cancelRouter);
 app.use('/encryptor', encryptRouter);
 app.use('/ban', banRouter);
 app.use('/unban', unbanRouter)
@@ -121,7 +125,8 @@ client.on('ready', () => {
   var guild = client.guilds.get(guildId);
   console.log(`Logged in as ${client.user.tag}!`);
   linkProcessor.queueInit(client, queue, textResponses);
-  unlinkProcessor.queueInit(client, queue, textResponses);
+  purchaseProcessor.queueInit(client, queue, textResponses);
+  cancelProcessor.queueInit(client, queue, textResponses);
   banProcessor.queueInit(client, queue);
   unbanProcessor.queueInit(client, queue);
 

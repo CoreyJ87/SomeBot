@@ -26,8 +26,6 @@ var self = module.exports = {
       return cluster.isMaster;
     }
   },
-
-
   isUserPremium: function(userProducts) {
     return new Promise(
       function(resolve, reject) {

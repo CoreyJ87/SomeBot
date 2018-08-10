@@ -39,7 +39,7 @@ var self = module.exports = {
     //var premiumRoleData = guild.roles.find("id", premiumRoleId);
     //var NFLPreseasonRoleData = guild.roles.find("id", nflPreasonRoleId);
 
-    queue.process('discordLink', 2, async function(job, done) {
+    queue.process('discordPurchase', 2, async function(job, done) {
       var discordId = job.data.discordId;
       var userProducts = job.data.userProducts;
       var username = job.data.username;
