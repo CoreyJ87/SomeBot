@@ -6,3 +6,8 @@ add stats - premium users - rg members - nonlinked and joins per day
 integrations
 grinders live announcements
 email bot
+
+
+24 msg sender -
+add user to db on link
+make event listener for people joining and count those as well as ppl linking per day

@@ -32,6 +32,7 @@ router.post('/', function(req, res, next) {
     username: req.body.username,
     userProducts: req.body.user_products,
     banned: isBanned,
+    purchase: false,
   }).removeOnComplete(false).attempts(5).save(function(err) {
     if (!err) {
       console.log(job.id);

@@ -15,7 +15,6 @@ const cluster = require('cluster')
 
 const functions = require('./processors/functions.js');
 const linkProcessor = require('./processors/linkqueue.js');
-const purchaseProcessor = require('./processors/purchasequeue.js');
 const cancelProcessor = require('./processors/cancelqueue.js');
 const unbanProcessor = require('./processors/unbanqueue.js');
 const banProcessor = require('./processors/banqueue.js');
@@ -42,7 +41,7 @@ const cancelRouter = require('./routes/cancel');
 const encryptRouter = require('./routes/encryptor');
 const banRouter = require('./routes/ban');
 const unbanRouter = require('./routes/unban');
-const statsRouter = require('./routes/stats')
+const upsellRouter = require('./routes/upsell');
 
 
 
@@ -106,12 +105,11 @@ app.use(initDiscord);
 
 app.use('/link', linkRouter);
 app.use('/purchase', purchaseRouter);
-app.use('/unlink', cancelRouter)
 app.use('/cancel', cancelRouter);
 app.use('/encryptor', encryptRouter);
 app.use('/ban', banRouter);
 app.use('/unban', unbanRouter)
-app.use('/stats', statsRouter)
+app.use('/upsell', upsellRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -123,12 +121,14 @@ client.login(botToken);
 
 client.on('ready', () => {
   var guild = client.guilds.get(guildId);
+  console.log(guild.roles)
   console.log(`Logged in as ${client.user.tag}!`);
   linkProcessor.queueInit(client, queue, textResponses);
-  purchaseProcessor.queueInit(client, queue, textResponses);
   cancelProcessor.queueInit(client, queue, textResponses);
   banProcessor.queueInit(client, queue);
   unbanProcessor.queueInit(client, queue);
+
+
 
   if (functions.isMasterProcess())
     eventListeners.eventListenersInit(client, textResponses);

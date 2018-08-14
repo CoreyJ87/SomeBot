@@ -26,12 +26,13 @@ router.post('/', function(req, res, next) {
     });
   }
 
-  var job = queue.create('discordPurchase', {
+  var job = queue.create('discordLink', {
     title: req.body.username,
     discordId: functions.decrypt(req.body.discord_id),
     username: req.body.username,
     userProducts: req.body.user_products,
     banned: isBanned,
+    purchase: true,
   }).removeOnComplete(false).attempts(5).save(function(err) {
     if (!err) {
       console.log(job.id);

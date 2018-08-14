@@ -1,6 +1,8 @@
 require('dotenv').config();
 const functions = require('./functions.js');
 const guildId = process.env.GUILD_ID;
+const unlinkedRoleId = process.env.UNLINKED_ROLE_ID;
+const defaultRoleId = process.env.DEFAULT_ROLE_ID;
 
 var self = module.exports = {
   eventListenersInit: function(client, textResponses) {
@@ -20,11 +22,11 @@ var self = module.exports = {
       })
       client.on('guildMemberAdd', member => {
         //if the joining member has the default roles
-        if (!member.roles.has("456874019732324353")) {
+        if (!member.roles.has(defaultRoleId)) {
           const id = member.id;
           var encryptedId = functions.encrypt(id);
           member.send(textResponses.welcomeMessage + encryptedId);
-          member.addRole(guild.roles.find("name", "Unlinked"))
+          member.addRole(guild.roles.get(unlinkedRoleId))
         }
       });
     }
