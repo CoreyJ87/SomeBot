@@ -25,20 +25,60 @@ router.post('/', function(req, res, next) {
 
   knex.select().from('users').then(function(rows) {
     _.forEach(rows, function(row) {
+      console.log("Row Output:")
+      console.log(row)
       if (moment().diff(row.timestamp, 'hours') > time_interval) {
-        var member = guild.members.get(row.discordId);
+        console.log("made it inside msg sender")
+        var member = guild.members.get(row.discord_id);
         member.send(textResponses.upsell).then(function(response) {
+
           knex('users')
             .where('discord_id', row.discordId)
-            .del()
-        }).catch(function(err) {
-          console.log(err)
+            .del();
+
+          var date = moment().format('YYYY-MM-DD');
+
+          knex.count('sends as thecount').where('timestamp', date).from('stats').then(function(resp) {
+            if (resp[0].thecount > 0) {
+              console.log("On exists function")
+              knex.where('timestamp', date).select('sends').from('stats').then(function(selectResp) {
+                console.log(selectResp)
+                _.forEach(selectResp, function(row) {
+                  knex('stats')
+                    .where({
+                      timestamp: date
+                    })
+                    .update({
+                      sends: parseInt(row.sends) + 1
+                    }).then(function(resp) {
+                      console.log(resp)
+                      res.send("Success")
+                    }).catch(function(err) {
+                      console.log(err)
+                      res.send(err)
+                    })
+                })
+
+              })
+            } else {
+              console.log("On not exists function")
+              knex('stats')
+                .insert({
+                  sends: 1,
+                  timestamp: date
+                }).then(function(resp) {
+                  console.log(resp);
+                  res.send("Success")
+                }).catch(function(err) {
+                  console.log(err);
+                  res.send(err)
+                })
+            }
+          })
         });
       }
-    })
-  }).catch(function(err) {
-    console.error(err);
-  });
+    });
+  })
 });
 
 

@@ -7,6 +7,7 @@ const premiumRoleId = process.env.PREMIUM_ROLE_ID;
 const nflPreasonRoleId = process.env.NFL_PRESEASON_ROLE_ID;
 const unlinkedRoleId = process.env.UNLINKED_ROLE_ID;
 const guildId = process.env.GUILD_ID;
+const upsellEnabled = process.env.UPSELL_ENABLED
 
 
 var self = module.exports = {
@@ -75,9 +76,11 @@ var self = module.exports = {
                       database: process.env.DISCORD_DBNAME,
                     }
                   });
-                  knex('users').insert({
-                    discord_id: discordId,
-                  });
+                  if (upsellEnabled) {
+                    knex('users').insert({
+                      discord_id: discordId,
+                    });
+                  }
                 }
                 done()
               }).catch(function(err) {

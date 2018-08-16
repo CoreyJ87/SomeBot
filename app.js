@@ -32,7 +32,7 @@ const textResponses = {
   addPremium: "You now have access to the #premium RotoGrinders channel.",
   premiumUnsub: "You may not have realized premium gave you exclusive access to our experts in the #premium channel. Resubscribe today!",
   welcomeMessage: "Hi, welcome to the Rotogrinders discord server! To chat and receive access to any premium channels you will need to link your account to your Rotogrinders account. To link your account, please follow this link. https://rotogrinders.com/partners/discord?id=",
-  upsell: "",
+  upsell: "This is a test of the upsell emergency system",
 }
 
 const linkRouter = require('./routes/link');
@@ -116,19 +116,14 @@ app.use(function(req, res, next) {
   next(createError(404));
 });
 
-console.log("Token:" + botToken)
 client.login(botToken);
 
 client.on('ready', () => {
-  var guild = client.guilds.get(guildId);
-  console.log(guild.roles)
   console.log(`Logged in as ${client.user.tag}!`);
   linkProcessor.queueInit(client, queue, textResponses);
   cancelProcessor.queueInit(client, queue, textResponses);
   banProcessor.queueInit(client, queue);
   unbanProcessor.queueInit(client, queue);
-
-
 
   if (functions.isMasterProcess())
     eventListeners.eventListenersInit(client, textResponses);
