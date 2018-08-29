@@ -52,6 +52,18 @@ var self = module.exports = {
         resolve(isUserNFLPreason);
       })
   },
+  isCFBPremium: function(userProducts) {
+    return new Promise(
+      function(resolve, reject) {
+        var isCFBPremium = false;
+        _.forEach(userProducts, function(singleProduct) {
+          if (singleProduct['product'].id == 621 && singleProduct['product'].product_type_id == 2 && singleProduct['status'] != 2 && singleProduct['status'] != 22) {
+            isCFBPremium = true;
+          }
+        });
+        resolve(isCFBPremium);
+      })
+  },
 
   setNick: function(member, job) {
     member.setNickname(job.data.username).then(function(response) {

@@ -5,6 +5,7 @@ require('dotenv').config();
 const defaultRoleId = process.env.DEFAULT_ROLE_ID;
 const premiumRoleId = process.env.PREMIUM_ROLE_ID;
 const guildId = process.env.GUILD_ID;
+const CFBRoleId = process.env.CFB_ROLE_ID;
 
 var self = module.exports = {
   queueInit: function(client, queue, textResponses) {
@@ -25,7 +26,18 @@ var self = module.exports = {
           if (response) {
             removeArr.push(nflPreasonRoleId)
           }
+              functions.isCFBPremium(userProducts).then(function(response) {
+                if(response){
+                  removeArr.push(CFBRoleId);
+                }
+              }).catch(function(){
+                done(new Error("Failed to remove CFB Role"))
+              })
+        }).catch(function(err){
+          done(new Error("Failed to remove NFL preseason role"))
         })
+      }).catch(function(err){
+        done(new Error("Failed to remove Premium role"))
       })
       member.removeRoles(removeArr)
         .then(function(response) {

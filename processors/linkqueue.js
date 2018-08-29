@@ -7,7 +7,8 @@ const premiumRoleId = process.env.PREMIUM_ROLE_ID;
 const nflPreasonRoleId = process.env.NFL_PRESEASON_ROLE_ID;
 const unlinkedRoleId = process.env.UNLINKED_ROLE_ID;
 const guildId = process.env.GUILD_ID;
-const upsellEnabled = process.env.UPSELL_ENABLED
+const upsellEnabled = process.env.UPSELL_ENABLED;
+const CFBRoleId = process.env.CFB_ROLE_ID;
 
 
 var self = module.exports = {
@@ -54,9 +55,15 @@ var self = module.exports = {
             }
 
             if (!member.roles.has(defaultRoleId)) {
-
               roleAddArray.push(defaultRoleId);
               member.send(textResponses.addDefault);
+            }
+
+
+            functions.isCFBPremium(userProducts).then(function(response) {
+            if(response && !member.role.has(CFBRoleId)){
+              roleAddArray.push(CFBRoleId);
+              member.send(textResponses.addCFB);
             }
 
             member.addRoles(roleAddArray).then(function(response) {
@@ -92,8 +99,15 @@ var self = module.exports = {
               done(new Error("Failed to add roles. Add role function failed."))
             })
 
+          }).catch(function(){
+            done(new Error("Failed to add premium role"))
           })
-        });
+        }).catch(function(err){
+          done(new Error("Failed to add nfl preseason role"))
+        })
+      }).catch(function(){
+        done(new Error("Failed to add premium role"))
+      })
       }
     });
   },

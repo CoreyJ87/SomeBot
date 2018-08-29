@@ -25,10 +25,7 @@ router.post('/', function(req, res, next) {
 
   knex.select().from('users').then(function(rows) {
     _.forEach(rows, function(row) {
-      console.log("Row Output:")
-      console.log(row)
       if (moment().diff(row.timestamp, 'hours') > time_interval) {
-        console.log("made it inside msg sender")
         var member = guild.members.get(row.discord_id);
         member.send(textResponses.upsell).then(function(response) {
 
@@ -40,7 +37,6 @@ router.post('/', function(req, res, next) {
 
           knex.count('sends as thecount').where('timestamp', date).from('stats').then(function(resp) {
             if (resp[0].thecount > 0) {
-              console.log("On exists function")
               knex.where('timestamp', date).select('sends').from('stats').then(function(selectResp) {
                 console.log(selectResp)
                 _.forEach(selectResp, function(row) {
@@ -61,7 +57,6 @@ router.post('/', function(req, res, next) {
 
               })
             } else {
-              console.log("On not exists function")
               knex('stats')
                 .insert({
                   sends: 1,
