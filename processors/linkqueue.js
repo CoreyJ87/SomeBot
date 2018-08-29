@@ -54,16 +54,15 @@ var self = module.exports = {
               member.send(textResponses.nflPreseason);
             }
 
-            if (!member.roles.has(defaultRoleId)) {
-              roleAddArray.push(defaultRoleId);
-              member.send(textResponses.addDefault);
-            }
-
-
             functions.isCFBPremium(userProducts).then(function(response) {
             if(response && !member.role.has(CFBRoleId)){
               roleAddArray.push(CFBRoleId);
               member.send(textResponses.addCFB);
+            }
+
+            if (!member.roles.has(defaultRoleId)) {
+              roleAddArray.push(defaultRoleId);
+              member.send(textResponses.addDefault);
             }
 
             member.addRoles(roleAddArray).then(function(response) {
