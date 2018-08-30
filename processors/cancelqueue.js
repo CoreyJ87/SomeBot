@@ -8,7 +8,7 @@ const guildId = process.env.GUILD_ID;
 const CFBRoleId = process.env.CFB_ROLE_ID;
 
 var self = module.exports = {
-  queueInit: function(client, queue, textResponses) {
+  queueInit: function(client, queue, textResponses, roleMap) {
     var guild = client.guilds.get(guildId);
     queue.process('discordCancel', 4, async function(job, done) {
       var removeArr = [];
@@ -21,22 +21,19 @@ var self = module.exports = {
           removeArr.push(premiumRoleId)
           member.send(textResponses.premiumUnsub);
         }
-
-        functions.isNFLPreseason(userProducts).then(function(response) {
-          if (response) {
-            removeArr.push(nflPreasonRoleId)
+        _.forEach(roleMap, function(roleRow) {
+          var isInProductList = false;
+          _.forEach(userProducts, function(singleProduct) {
+            if (singleProduct['status'] != 2 && singleProduct['status'] != 22 && roleRow.product_id == singleProduct['product'].id) {
+              isInProductList = true;
+            }
+          })
+          if (!isInProductList) {
+            removeArr.push(roleRow.role_id);
+            member.send(roleMap[roleRow.role_id].unsubmsg);
           }
-              functions.isCFBPremium(userProducts).then(function(response) {
-                if(response){
-                  removeArr.push(CFBRoleId);
-                }
-              }).catch(function(){
-                done(new Error("Failed to remove CFB Role"))
-              })
-        }).catch(function(err){
-          done(new Error("Failed to remove NFL preseason role"))
         })
-      }).catch(function(err){
+      }).catch(function(err) {
         done(new Error("Failed to remove Premium role"))
       })
       member.removeRoles(removeArr)

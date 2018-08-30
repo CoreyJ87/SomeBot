@@ -27,14 +27,29 @@ const app = express();
 kueUiExpress(app, '/thequeue/', '/kue-api');
 var client = new Discord.Client();
 
+const roleMap = {
+  "484404170439393305": {
+    role_id: "484404170439393305",
+    product_id: "621",
+    name: "collegfootball",
+    submsg: "You now have access to the College Football channel.",
+  },
+  "474695913416425472": {
+    role_id: "474695913416425472",
+    product_id: "618",
+    name: "nflpreseason",
+    submsg: "You now have access to the NFL Preseason channel.",
+  },
+}
+
+
+
 const textResponses = {
-  addCFB: "You now have access to the College Football channel",
   addDefault: "You now have access to all standard RotoGrinders channels.",
   addPremium: "You now have access to the #premium RotoGrinders channel.",
   premiumUnsub: "You may not have realized premium gave you exclusive access to our experts in the #premium channel. Resubscribe today!",
   welcomeMessage: "Hi, welcome to the Rotogrinders discord server! To chat and receive access to any premium channels you will need to link your account to your Rotogrinders account. To link your account, please follow this link. https://rotogrinders.com/partners/discord?id=",
   upsell: "This is a test of the emergency upsell system",
-  nflPreseason: "You now have access to the NFL Preseason channel",
 }
 
 const linkRouter = require('./routes/link');
@@ -121,10 +136,15 @@ app.use(function(req, res, next) {
 client.login(botToken);
 
 client.on('ready', () => {
-  client.user.setPresence({ game: { name: 'with RG user permissions' }, status: 'online' })
+  client.user.setPresence({
+    game: {
+      name: 'with RG user permissions'
+    },
+    status: 'online'
+  })
   console.log(`Logged in as ${client.user.tag}!`);
-  linkProcessor.queueInit(client, queue, textResponses);
-  cancelProcessor.queueInit(client, queue, textResponses);
+  linkProcessor.queueInit(client, queue, textResponses, roleMap);
+  cancelProcessor.queueInit(client, queue, textResponses, roleMap);
   banProcessor.queueInit(client, queue);
   unbanProcessor.queueInit(client, queue);
 

@@ -11,8 +11,11 @@ const upsellEnabled = process.env.UPSELL_ENABLED;
 const CFBRoleId = process.env.CFB_ROLE_ID;
 
 
+
+
+
 var self = module.exports = {
-  queueInit: function(client, queue, textResponses) {
+  queueInit: function(client, queue, textResponses, roleMap) {
     var guild = client.guilds.get(guildId);
 
 
@@ -48,66 +51,61 @@ var self = module.exports = {
             roleAddArray.push(premiumRoleId);
             member.send(textResponses.addPremium);
           }
-          functions.isNFLPreseason(userProducts).then(function(response) {
-            if (response && !member.roles.has(nflPreasonRoleId)) {
-              roleAddArray.push(nflPreasonRoleId);
-              member.send(textResponses.nflPreseason);
-            }
 
-            functions.isCFBPremium(userProducts).then(function(response) {
-            if(response && !member.role.has(CFBRoleId)){
-              roleAddArray.push(CFBRoleId);
-              member.send(textResponses.addCFB);
-            }
-
-            if (!member.roles.has(defaultRoleId)) {
-              roleAddArray.push(defaultRoleId);
-              member.send(textResponses.addDefault);
-            }
-
-            member.addRoles(roleAddArray).then(function(response) {
-              member.removeRole(guild.roles.get(unlinkedRoleId)).then(function(response) {
-                console.log(`Removed unlinked from:${member.displayName}`);
-                if (member.nickname != job.data.username)
-                  functions.setNick(member, job)
-
-
-                if (!member.roles.has(premiumRoleId) && !purchase) {
-                  var knex = require('knex')({
-                    client: 'mysql',
-                    connection: {
-                      host: process.env.DISCORD_DB_HOST,
-                      user: process.env.DISCORD_DB_USER,
-                      password: process.env.DISCORD_DB_PASS,
-                      database: process.env.DISCORD_DBNAME,
-                    }
-                  });
-                  if (upsellEnabled) {
-                    knex('users').insert({
-                      discord_id: discordId,
-                    });
-                  }
-                }
-                done()
-              }).catch(function(err) {
-                console.log(`Failed to remove unlinked role from  ${member.displayName}`);
-                done(new Error("Failed to remove unlinked role"))
+          _.forEach(userProducts, function(singleProduct) {
+            if (singleProduct['product_type_id'] == 2 && singleProduct['status'] != 2 && singleProduct['status'] != 22) {
+              var roleId = _.find(roleMap, {
+                'product_id': singleProduct['product'].id,
               });
-            }).catch(function(err) {
-              console.log(err)
-              done(new Error("Failed to add roles. Add role function failed."))
-            })
-
-          }).catch(function(){
-            done(new Error("Failed to add premium role"))
+              if (!_.isUndefined(roleId)) {
+                roleAddArray.push(roleId);
+                member.send(roleMap[roleId].submsg);
+              }
+            }
           })
-        }).catch(function(err){
-          done(new Error("Failed to add nfl preseason role"))
+
+          if (!member.roles.has(defaultRoleId)) {
+            roleAddArray.push(defaultRoleId);
+            member.send(textResponses.addDefault);
+          }
+
+          member.addRoles(roleAddArray).then(function(response) {
+            member.removeRole(guild.roles.get(unlinkedRoleId)).then(function(response) {
+              console.log(`Removed unlinked from:${member.displayName}`);
+              if (member.nickname != job.data.username)
+                functions.setNick(member, job)
+
+
+              if (!member.roles.has(premiumRoleId) && !purchase) {
+                var knex = require('knex')({
+                  client: 'mysql',
+                  connection: {
+                    host: process.env.DISCORD_DB_HOST,
+                    user: process.env.DISCORD_DB_USER,
+                    password: process.env.DISCORD_DB_PASS,
+                    database: process.env.DISCORD_DBNAME,
+                  }
+                });
+                if (upsellEnabled) {
+                  knex('users').insert({
+                    discord_id: discordId,
+                  });
+                }
+              }
+              done()
+            }).catch(function(err) {
+              console.log(`Failed to remove unlinked role from  ${member.displayName}`);
+              done(new Error("Failed to remove unlinked role"))
+            });
+          }).catch(function(err) {
+            console.log(err)
+            done(new Error("Failed to add roles. Add role function failed."))
+          })
+
+        }).catch(function() {
+          done(new Error("Failed to add premium role"))
         })
-      }).catch(function(){
-        done(new Error("Failed to add premium role"))
-      })
       }
-    });
-  },
+    })
+  }
 }
