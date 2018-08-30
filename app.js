@@ -30,15 +30,17 @@ var client = new Discord.Client();
 const roleMap = {
   "484404170439393305": {
     role_id: "484404170439393305",
-    product_id: "621",
+    product_id: 621,
     name: "collegfootball",
     submsg: "You now have access to the College Football channel.",
+    unsubmsg: "You have lost your access to the College Football channel. Resubscribe today!",
   },
   "474695913416425472": {
     role_id: "474695913416425472",
-    product_id: "618",
+    product_id: 618,
     name: "nflpreseason",
     submsg: "You now have access to the NFL Preseason channel.",
+    unsubmsg: "You have lost your access to the NFL Preseason channel. Resubscribe today! Channel will stay even after the preseason!".
   },
 }
 
@@ -136,6 +138,11 @@ app.use(function(req, res, next) {
 client.login(botToken);
 
 client.on('ready', () => {
+  var guild = client.guilds.get(guildId);
+  guild.fetchBans()
+    .then(bans => console.log(bans))
+    .catch(console.error);
+
   client.user.setPresence({
     game: {
       name: 'with RG user permissions'

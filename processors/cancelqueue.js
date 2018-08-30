@@ -23,15 +23,13 @@ var self = module.exports = {
         }
         _.forEach(roleMap, function(roleRow) {
           var isInProductList = false;
-
-
           var filterResults = _.filter(userProducts, `{'product_id': ${roleRow.product_id} }`)
           if (singleProduct['status'] != 2 && singleProduct['status'] != 22 && !_.isUndefined(filterResults)) {
             isInProductList = true;
           }
           if (!isInProductList) {
             removeArr.push(roleRow.role_id);
-            member.send(roleMap[roleRow.role_id].unsubmsg);
+            member.send(roleRow.unsubmsg);
           }
         })
       }).catch(function(err) {
