@@ -2,10 +2,12 @@ require('dotenv').config();
 const _ = require('lodash');
 
 var self = module.exports = {
-  queueInit: function(client, queue) {
+  queueInit: function(client, queue, debug) {
     const guildId = process.env.GUILD_ID;
     const guild = client.guilds.get(guildId);
-    queue.process('discordBan', 2, async function(job, done) {
+
+
+    queue.process((debug ? 'discordBanTest' : 'discordBan'), 2, async function(job, done) {
       const discordId = job.data.discordId;
       const member = guild.members.get(discordId);
       if (!_.isEmpty(member)) {

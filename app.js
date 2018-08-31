@@ -12,6 +12,7 @@ const kueUiExpress = require('kue-ui-express');
 const Discord = require('discord.js');
 const _ = require('lodash');
 const cluster = require('cluster')
+const debug = true;
 
 const functions = require('./processors/functions.js');
 const linkProcessor = require('./processors/linkqueue.js');
@@ -40,7 +41,7 @@ const roleMap = {
     product_id: 618,
     name: "nflpreseason",
     submsg: "You now have access to the NFL Preseason channel.",
-    unsubmsg: "You have lost your access to the NFL Preseason channel. Resubscribe today! Channel will stay even after the preseason!".
+    unsubmsg: "You have lost your access to the NFL Preseason channel. Resubscribe today! Channel will stay even after the preseason!",
   },
 }
 
@@ -79,7 +80,8 @@ app.use(bodyParser.json());
 
 
 var checkApiKey = function(req, res, next) {
-  if (req.query.apikey == process.env.API_KEY || req.originalUrl == "/kue" || req.originalUrl == "/kue-api") {
+  req.debug = debug;
+  if (req.query.apikey == process.env.API_KEY || req.originalUrl == "/kue" || req.originalUrl == "/kue-api" || debug) {
     next();
   } else {
     res.status(401).json({
@@ -92,8 +94,8 @@ var initDiscord = function(req, res, next) {
   req.queue = queue;
   req.textResponses = textResponses;
   req.client = client;
-  next();
   console.log('Initialized Queue and Client');
+  next();
 }
 
 var initQueue = function(req, res, next) {
@@ -138,11 +140,6 @@ app.use(function(req, res, next) {
 client.login(botToken);
 
 client.on('ready', () => {
-  var guild = client.guilds.get(guildId);
-  guild.fetchBans()
-    .then(bans => console.log(bans))
-    .catch(console.error);
-
   client.user.setPresence({
     game: {
       name: 'with RG user permissions'
@@ -150,12 +147,12 @@ client.on('ready', () => {
     status: 'online'
   })
   console.log(`Logged in as ${client.user.tag}!`);
-  linkProcessor.queueInit(client, queue, textResponses, roleMap);
-  cancelProcessor.queueInit(client, queue, textResponses, roleMap);
-  banProcessor.queueInit(client, queue);
-  unbanProcessor.queueInit(client, queue);
+  linkProcessor.queueInit(client, queue, textResponses, roleMap, debug);
+  cancelProcessor.queueInit(client, queue, textResponses, roleMap, debug);
+  banProcessor.queueInit(client, queue, debug);
+  unbanProcessor.queueInit(client, queue, debug);
 
-  if (functions.isMasterProcess())
+  if (functions.isMasterProcess() && debug == false)
     eventListeners.eventListenersInit(client, textResponses);
 });
 

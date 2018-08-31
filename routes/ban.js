@@ -5,10 +5,11 @@ const kue = require('kue');
 require('dotenv').config();
 const functions = require('../processors/functions.js');
 
-
 router.post('/', function(req, res, next) {
-  var queue = req.queue;
-  var job = queue.create('discordBan', {
+  const queue = req.queue;
+  const debug = req.debug;
+
+  const job = queue.create((debug ? 'discordBanTest' : 'discordBan'), {
     title: req.body.username,
     discordId: functions.decrypt(req.body.discord_id),
   }).removeOnComplete(false).attempts(5).save(function(err) {

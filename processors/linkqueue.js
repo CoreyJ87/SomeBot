@@ -10,36 +10,46 @@ const guildId = process.env.GUILD_ID;
 const upsellEnabled = process.env.UPSELL_ENABLED;
 const CFBRoleId = process.env.CFB_ROLE_ID;
 
-
-
-
-
 var self = module.exports = {
-  queueInit: function(client, queue, textResponses, roleMap) {
-    var guild = client.guilds.get(guildId);
+  queueInit: function(client, queue, textResponses, roleMap, debug) {
+    const guild = client.guilds.get(guildId);
 
 
-    queue.process('discordLink', 2, async function(job, done) {
-      var discordId = job.data.discordId;
-      var userProducts = job.data.userProducts;
-      var username = job.data.username;
-      var banned = job.data.banned;
+    queue.process((debug ? 'discordLinkTest' : 'discordLink'), 2, async function(job, done) {
+      const discordId = job.data.discordId;
+      const userProducts = job.data.userProducts;
+      const username = job.data.username;
+      const banned = job.data.banned;
       var member = guild.members.get(discordId);
-      var purchase = job.data.purchase;
+      const purchase = job.data.purchase;
 
       if (_.isEmpty(member))
         var member = guild.members.find("id", discordId);
 
       if (banned) {
-        guild.ban(member, 0, 'You are banned from RG')
-          .then(function(user) {
-            console.log(`Banned ${user.username || user.id || user}`)
-            done()
+        var userAlreadyBanned = false;
+        console.log("Username:" + username + " is banned checking ban list before attemping to ban")
+        guild.fetchBans()
+          .then(function(bans) {
+            _.forEach(bans, function(ban) {
+              if (ban.id == discordId) {
+                userAlreadyBanned = true;
+              }
+            })
           })
-          .catch(function(user) {
-            console.log(`Failed to ban user: ${username}`)
-            done(new Error(`Member ${username} should be banned but failed. Or is already banned`))
-          });
+          .catch(console.error);
+
+        if (userAlreadyBanned == false) {
+          guild.ban(member, 0, 'You are banned from RG')
+            .then(function(user) {
+              console.log(`Banned ${user.username}`)
+              done()
+            })
+            .catch(function(user) {
+              console.log(`Failed to ban user: ${username}`)
+              done(new Error(`Member ${username} should be banned but failed. Or is already banned`))
+            });
+        }
       } else if (_.isEmpty(member)) {
         done(new Error('Member data is undefined'))
       } else {
@@ -51,23 +61,27 @@ var self = module.exports = {
             roleAddArray.push(premiumRoleId);
             member.send(textResponses.addPremium);
           }
-
-          _.forEach(userProducts, function(singleProduct) {
-            if (singleProduct['product_type_id'] == 2 && singleProduct['status'] != 2 && singleProduct['status'] != 22) {
-              var roleId = _.find(roleMap, {
-                'product_id': singleProduct['product'].id,
-              });
-              if (!_.isUndefined(roleId)) {
-                roleAddArray.push(roleId);
-                member.send(roleMap[roleId].submsg);
-              }
-            }
-          })
-
           if (!member.roles.has(defaultRoleId)) {
             roleAddArray.push(defaultRoleId);
             member.send(textResponses.addDefault);
           }
+
+          _.forEach(userProducts, function(singleProduct) {
+            console.log(singleProduct);
+            if (singleProduct['product'].product_type_id == 2 && singleProduct['status'] != 2 && singleProduct['status'] != 22) {
+              var roleId = _.find(roleMap, {
+                'product_id': singleProduct['product'].id,
+              });
+              if (!_.isUndefined(roleId)) {
+                roleAddArray.push(parseInt(roleId.role_id));
+                member.send(roleId.submsg);
+              } else {
+                console.log(`${username} has marketplace products but none match our map`)
+              }
+            } else {
+              console.log(`${username} does not have any marketplace products at all`)
+            }
+          })
 
           member.addRoles(roleAddArray).then(function(response) {
             member.removeRole(guild.roles.get(unlinkedRoleId)).then(function(response) {

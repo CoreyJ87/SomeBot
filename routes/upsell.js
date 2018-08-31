@@ -10,10 +10,10 @@ const guildId = process.env.GUILD_ID;
 
 
 router.post('/', function(req, res, next) {
-  var client = req.client;
-  var textResponses = req.textResponses;
-  var guild = client.guilds.get(guildId)
-  var knex = require('knex')({
+  const client = req.client;
+  const textResponses = req.textResponses;
+  const guild = client.guilds.get(guildId)
+  const knex = require('knex')({
     client: 'mysql',
     connection: {
       host: process.env.DISCORD_DB_HOST,

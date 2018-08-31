@@ -1,7 +1,8 @@
 require('dotenv').config();
 const _ = require('lodash');
 var self = module.exports = {
-  queueInit: function(client, queue) {
+  queueInit: function(client, queue, debug) {
+
     queue.process('discordUnban', 2, async function(job, done) {
       const guildId = process.env.GUILD_ID;
       const guild = client.guilds.get(guildId);
