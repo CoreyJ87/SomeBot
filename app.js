@@ -146,7 +146,9 @@ client.on('ready', () => {
     },
     status: 'online'
   })
+  console.log("==========================================================");
   console.log(`Logged in as ${client.user.tag}!`);
+  console.log("==========================================================");
   linkProcessor.queueInit(client, queue, textResponses, roleMap, debug);
   cancelProcessor.queueInit(client, queue, textResponses, roleMap, debug);
   banProcessor.queueInit(client, queue, debug);

@@ -61,28 +61,26 @@ var self = module.exports = {
             roleAddArray.push(premiumRoleId);
             member.send(textResponses.addPremium);
           }
-          if (!member.roles.has(defaultRoleId)) {
+          if (!member.roles.has(defaultRoleId) && !member.roles.has(defaultRoleId)) {
             roleAddArray.push(defaultRoleId);
             member.send(textResponses.addDefault);
           }
 
           _.forEach(userProducts, function(singleProduct) {
-            console.log(singleProduct);
             if (singleProduct['product'].product_type_id == 2 && singleProduct['status'] != 2 && singleProduct['status'] != 22) {
               var roleId = _.find(roleMap, {
                 'product_id': singleProduct['product'].id,
               });
-              if (!_.isUndefined(roleId)) {
-                roleAddArray.push(parseInt(roleId.role_id));
+              if (!_.isUndefined(roleId) && !member.roles.has(roleId.role_id)) {
+                roleAddArray.push(roleId.role_id);
                 member.send(roleId.submsg);
-              } else {
-                console.log(`${username} has marketplace products but none match our map`)
               }
-            } else {
-              console.log(`${username} does not have any marketplace products at all`)
             }
           })
-
+          if (!_.isEmpty(roleAddArray)) {
+            console.log("Roles Ids to be added to user:" + username);
+            console.log(roleAddArray);
+          }
           member.addRoles(roleAddArray).then(function(response) {
             member.removeRole(guild.roles.get(unlinkedRoleId)).then(function(response) {
               console.log(`Removed unlinked from:${member.displayName}`);
@@ -116,7 +114,8 @@ var self = module.exports = {
             done(new Error("Failed to add roles. Add role function failed."))
           })
 
-        }).catch(function() {
+        }).catch(function(err) {
+          console.log(err)
           done(new Error("Failed to add premium role"))
         })
       }
