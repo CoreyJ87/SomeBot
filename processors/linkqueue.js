@@ -109,7 +109,6 @@ let self = module.exports = {
             console.log(err);
             done(new Error("Failed to add roles. Add role function failed."))
           })
-
         }).catch(function(err) {
           console.log(err);
           done(new Error("Failed to add premium role"))

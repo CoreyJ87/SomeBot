@@ -32,12 +32,12 @@ let self = module.exports = {
           }
           console.log("Role Checking:" +roleRow.name);
           console.log("Is in product list: "+ isInProductList);
-          if (isInProductList === false) {
+          if (isInProductList === false && member.roles.has(roleRow.role_id)) {
               console.log("Pushing role id: "+ roleRow.role_id);
             removeArr.push(roleRow.role_id);
             sendMsgArr.push(roleRow.unsubmsg);
           }
-        })
+        });
           if (!_.isEmpty(removeArr)) {
               console.log("Roles to be removed from user: " + member.nickname);
               console.log(removeArr);
