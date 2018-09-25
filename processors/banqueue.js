@@ -1,7 +1,7 @@
 require('dotenv').config();
 const _ = require('lodash');
 
-var self = module.exports = {
+let self = module.exports = {
   queueInit: function(client, queue, debug) {
     const guildId = process.env.GUILD_ID;
     const guild = client.guilds.get(guildId);
@@ -12,11 +12,13 @@ var self = module.exports = {
       const member = guild.members.get(discordId);
       if (!_.isEmpty(member)) {
         guild.ban(member).then(function(response) {
-          console.log(`Banned user ${member.nickname}`)
+          console.log(response);
+          console.log(`Banned user ${member.nickname}`);
           done()
         }).catch(function(err) {
-          console.log(`Failed to ban user ${member.nickname}`)
-          done(new Error(`Failed to ban ${member.nickname}`))
+          console.log(err);
+          console.log(`Failed to ban user ${member.nickname}`);
+          done(new Error(`Failed to ban ${member.nickname}`));
         });
       }
     });

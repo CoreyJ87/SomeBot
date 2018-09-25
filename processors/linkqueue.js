@@ -1,16 +1,13 @@
 require('dotenv').config();
 const _ = require('lodash');
-const kue = require('kue');
 const functions = require('./functions.js');
 const defaultRoleId = process.env.DEFAULT_ROLE_ID;
 const premiumRoleId = process.env.PREMIUM_ROLE_ID;
-const nflPreasonRoleId = process.env.NFL_PRESEASON_ROLE_ID;
 const unlinkedRoleId = process.env.UNLINKED_ROLE_ID;
 const guildId = process.env.GUILD_ID;
 const upsellEnabled = process.env.UPSELL_ENABLED;
-const CFBRoleId = process.env.CFB_ROLE_ID;
 
-var self = module.exports = {
+let self = module.exports = {
   queueInit: function(client, queue, textResponses, roleMap, debug) {
     const guild = client.guilds.get(guildId);
 
@@ -20,14 +17,14 @@ var self = module.exports = {
       const userProducts = job.data.userProducts;
       const username = job.data.username;
       const banned = job.data.banned;
-      var member = guild.members.get(discordId);
+      const member = guild.members.get(discordId);
       const purchase = job.data.purchase;
 
-      if (_.isEmpty(member))
-        var member = guild.members.find("id", discordId);
-
+      if (_.isEmpty(member)) {
+          const member = guild.members.find("id", discordId);
+      }
       if (banned) {
-        var userAlreadyBanned = false;
+        let userAlreadyBanned = false;
         console.log("Username:" + username + " is banned checking ban list before attemping to ban")
         guild.fetchBans()
           .then(function(bans) {
@@ -45,17 +42,16 @@ var self = module.exports = {
               console.log(`Banned ${user.username}`)
               done()
             })
-            .catch(function(user) {
-              console.log(`Failed to ban user: ${username}`)
+            .catch(function(err) {
+              console.log(err);
+              console.log(`Failed to ban user: ${username}`);
               done(new Error(`Member ${username} should be banned but failed. Or is already banned`))
             });
         }
       } else if (_.isEmpty(member)) {
         done(new Error('Member data is undefined'))
       } else {
-
-        var roleAddArray = []
-
+        let roleAddArray = [];
         functions.isUserPremium(userProducts).then(function(response) {
           if (response && !member.roles.has(premiumRoleId)) {
             roleAddArray.push(premiumRoleId);
@@ -68,7 +64,7 @@ var self = module.exports = {
 
           _.forEach(userProducts, function(singleProduct) {
             if (singleProduct['product'].product_type_id == 2 && singleProduct['status'] != 2 && singleProduct['status'] != 22) {
-              var roleId = _.find(roleMap, {
+              let roleId = _.find(roleMap, {
                 'product_id': singleProduct['product'].id,
               });
               if (!_.isUndefined(roleId) && !member.roles.has(roleId.role_id)) {
@@ -85,11 +81,11 @@ var self = module.exports = {
             member.removeRole(guild.roles.get(unlinkedRoleId)).then(function(response) {
               console.log(`Removed unlinked from:${member.displayName}`);
               if (member.nickname != job.data.username)
-                functions.setNick(member, job)
+                functions.setNick(member, job);
 
 
               if (!member.roles.has(premiumRoleId) && !purchase) {
-                var knex = require('knex')({
+                let knex = require('knex')({
                   client: 'mysql',
                   connection: {
                     host: process.env.DISCORD_DB_HOST,
@@ -110,12 +106,12 @@ var self = module.exports = {
               done(new Error("Failed to remove unlinked role"))
             });
           }).catch(function(err) {
-            console.log(err)
+            console.log(err);
             done(new Error("Failed to add roles. Add role function failed."))
           })
 
         }).catch(function(err) {
-          console.log(err)
+          console.log(err);
           done(new Error("Failed to add premium role"))
         })
       }

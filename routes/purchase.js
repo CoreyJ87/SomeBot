@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const _ = require('lodash');
-const kue = require('kue');
 const functions = require('../processors/functions.js');
 require('dotenv').config();
 
 router.post('/', function(req, res, next) {
-  var isBanned = false;
+  let isBanned = false;
   const queue = req.queue;
   const debug = req.debug;
 
@@ -18,7 +17,7 @@ router.post('/', function(req, res, next) {
     });
   }
 
-  var job = queue.create((debug ? 'discordLinkTest' : 'discordLink'), {
+  let job = queue.create((debug ? 'discordLinkTest' : 'discordLink'), {
     title: req.body.username,
     discordId: functions.decrypt(req.body.discord_id),
     username: req.body.username,

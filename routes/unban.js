@@ -1,7 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const _ = require('lodash');
-const kue = require('kue');
 require('dotenv').config();
 const functions = require('../processors/functions.js');
 

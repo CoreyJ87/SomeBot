@@ -1,5 +1,4 @@
 require('dotenv').config();
-const Promise = require("bluebird");
 const express = require('express');
 const fs = require('fs');
 const createError = require('http-errors');
@@ -10,8 +9,6 @@ const logger = require('morgan');
 const kue = require('kue');
 const kueUiExpress = require('kue-ui-express');
 const Discord = require('discord.js');
-const _ = require('lodash');
-const cluster = require('cluster')
 const debug = true;
 
 const functions = require('./processors/functions.js');
@@ -19,14 +16,13 @@ const linkProcessor = require('./processors/linkqueue.js');
 const cancelProcessor = require('./processors/cancelqueue.js');
 const unbanProcessor = require('./processors/unbanqueue.js');
 const banProcessor = require('./processors/banqueue.js');
-const eventListeners = require('./processors/eventlisteners.js')
+const eventListeners = require('./processors/eventlisteners.js');
 const queue = kue.createQueue();
-const guildId = process.env.GUILD_ID;
 const botToken = process.env.BOT_TOKEN;
 
 const app = express();
 kueUiExpress(app, '/thequeue/', '/kue-api');
-var client = new Discord.Client();
+let client = new Discord.Client();
 
 const roleMap = {
   "484404170439393305": {
@@ -45,8 +41,6 @@ const roleMap = {
   },
 }
 
-
-
 const textResponses = {
   addDefault: "You now have access to all standard RotoGrinders channels.",
   addPremium: "You now have access to the #premium RotoGrinders channel.",
@@ -63,8 +57,6 @@ const banRouter = require('./routes/ban');
 const unbanRouter = require('./routes/unban');
 const upsellRouter = require('./routes/upsell');
 
-
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -79,7 +71,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 
 
-var checkApiKey = function(req, res, next) {
+let checkApiKey = function(req, res, next) {
   req.debug = debug;
   if (req.query.apikey == process.env.API_KEY || req.originalUrl == "/kue" || req.originalUrl == "/kue-api" || debug) {
     next();
@@ -88,17 +80,17 @@ var checkApiKey = function(req, res, next) {
       unauthorized: true
     })
   }
-}
+};
 
-var initDiscord = function(req, res, next) {
+let initDiscord = function(req, res, next) {
   req.queue = queue;
   req.textResponses = textResponses;
   req.client = client;
   console.log('Initialized Queue and Client');
   next();
-}
+};
 
-var initQueue = function(req, res, next) {
+let initQueue = function(req, res, next) {
   queue.on('error', function(err) {
     console.log('Oops... ', err);
   });
@@ -118,7 +110,7 @@ var initQueue = function(req, res, next) {
     });
   });
   next();
-}
+};
 app.use('/kue-api/', kue.app);
 app.use(checkApiKey);
 app.use(initQueue);
@@ -145,7 +137,7 @@ client.on('ready', () => {
       name: 'with RG user permissions'
     },
     status: 'online'
-  })
+  });
   console.log("==========================================================");
   console.log(`Logged in as ${client.user.tag}!`);
   console.log("==========================================================");
@@ -167,7 +159,7 @@ app.use(function(err, req, res, next) {
   res.locals.error = req.app.get('env') === 'development' ? err : {};
   console.log(err)
 
-  fs.writeFile("/var/log/rgdiscordbot.log", err, function(err2) {
+  fs.writeFile("/let/log/rgdiscordbot.log", err, function(err2) {
     if (err2) {
       return console.log(err2);
     }

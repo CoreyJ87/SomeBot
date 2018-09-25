@@ -1,11 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const _ = require('lodash');
-const kue = require('kue');
 require('dotenv').config();
 const functions = require('../processors/functions.js');
 
-router.post('/', function(req, res, next) {
+router.post('/', function(req, res) {
   const queue = req.queue;
   const debug = req.debug;
 
