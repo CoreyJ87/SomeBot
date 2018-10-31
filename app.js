@@ -9,7 +9,7 @@ const logger = require('morgan');
 const kue = require('kue');
 const kueUiExpress = require('kue-ui-express');
 const Discord = require('discord.js');
-const debug = true;
+const debug = false;
 
 const functions = require('./processors/functions.js');
 const linkProcessor = require('./processors/linkqueue.js');
@@ -28,7 +28,7 @@ const roleMap = {
   "484404170439393305": {
     role_id: "484404170439393305",
     product_id: 621,
-    name: "collegfootball",
+    name: "collegefootball",
     submsg: "You now have access to the College Football channel.",
     unsubmsg: "You have lost your access to the College Football channel. Resubscribe today!",
   },
@@ -39,6 +39,20 @@ const roleMap = {
     submsg: "You now have access to the NFL Preseason channel.",
     unsubmsg: "You have lost your access to the NFL Preseason channel. Resubscribe today! Channel will stay even after the preseason!",
   },
+    "505465574864977930": {
+        role_id: "505465574864977930",
+        product_id: 615,
+        name: "premierleagueplaymaker",
+        submsg: "You now have access to the Premier League Playmaker channel: #marketplace-soc",
+        unsubmsg: "You have lost your access to the Premier League Playmaker channel. Resubscribe today! Channel will stay even after the preseason!",
+    },
+    "506482676757299240": {
+        role_id: "506482676757299240",
+        product_id: 623,
+        name: "championspackage",
+        submsg: "You now have access to the Champions channel: #marketplace-soc",
+        unsubmsg: "You have lost your access to the Champions channel. Resubscribe today! Channel will stay even after the preseason!",
+    },
 }
 
 const textResponses = {
@@ -121,8 +135,8 @@ app.use('/purchase', purchaseRouter);
 app.use('/cancel', cancelRouter);
 app.use('/encryptor', encryptRouter);
 app.use('/ban', banRouter);
-app.use('/unban', unbanRouter)
-app.use('/upsell', upsellRouter)
+app.use('/unban', unbanRouter);
+app.use('/upsell', upsellRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -146,7 +160,7 @@ client.on('ready', () => {
   banProcessor.queueInit(client, queue, debug);
   unbanProcessor.queueInit(client, queue, debug);
 
-  if (functions.isMasterProcess() && debug == false)
+  if (functions.isMasterProcess())
     eventListeners.eventListenersInit(client, textResponses);
 });
 
@@ -159,7 +173,7 @@ app.use(function(err, req, res, next) {
   res.locals.error = req.app.get('env') === 'development' ? err : {};
   console.log(err)
 
-  fs.writeFile("/let/log/rgdiscordbot.log", err, function(err2) {
+  fs.writeFile("/var/log/rgdiscordbot.log", err, function(err2) {
     if (err2) {
       return console.log(err2);
     }

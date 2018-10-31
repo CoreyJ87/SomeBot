@@ -7,7 +7,7 @@ const defaultRoleId = process.env.DEFAULT_ROLE_ID;
 let self = module.exports = {
   eventListenersInit: function(client, textResponses) {
     let guild = client.guilds.get(guildId);
-    if (functions.isMasterProcess()) {
+
       client.on('message', msg => {
         if (msg.content == '!resend') {
           const id = msg.author.id;
@@ -29,6 +29,5 @@ let self = module.exports = {
           member.addRole(guild.roles.get(unlinkedRoleId))
         }
       });
-    }
   }
 }
